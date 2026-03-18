@@ -17,9 +17,6 @@ repository-code: 'https://github.com/Shahrukh-Chishti/DiSuQ/tree/main'
 abstract: >-
   Superconducting circuits quantization library for
   simulation and optimization.
-
-  Supported with flexible backend on pyTorch/numpy for
-  gradient descent methods.
 keywords:
   - superconducting-circuits
   - optimization

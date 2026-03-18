@@ -32,7 +32,7 @@ temp-plot.html
 *.svg
 
 # Data File
-#*.pickle
+*.pickle
 *.csv
 
 # Swap files
