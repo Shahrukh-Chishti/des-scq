@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: DiSuQ
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Shahrukh
+    family-names: Chishti
+    email: shahrukh.chishti@gmail.com
+    affiliation: Forschungzentrum-Juelich
+    orcid: 'https://orcid.org/0000-0002-6014-1433'
+repository-code: 'https://github.com/Shahrukh-Chishti/DiSuQ/tree/main'
+abstract: >-
+  Superconducting circuits quantization library for
+  simulation and optimization.
+
+  Supported with flexible backend on pyTorch/numpy for
+  gradient descent methods.
+keywords:
+  - superconducting-circuits
+  - optimization
+license: Apache-2.0
