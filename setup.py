@@ -7,7 +7,7 @@ def load_requirements(path):
     with open(path) as f:
         return f.read().splitlines()
 
-setup(name='Des-Scq',
+setup(name='des-scq',
         author='Shahrukh Chishti, Carla Illmann',
         version="0.0.1",
         python_requires=">=3.11",
