@@ -5,7 +5,7 @@ from numpy import meshgrid,linspace,array,log10,random,logspace
 from numpy.random import choice
 from random import seed
 from scipy.stats import truncnorm
-from des_scq.components import Parameter
+from des_scq.components import Parameters
 
 # Characteristics
 
@@ -134,7 +134,7 @@ def uniformParameters(circuit,subspace,n,N,externals=[],random_state=10,logscale
     grid = array(grid).T
     return parameterSpace(circuit,grid,iDs)
 
-def uniformUnidimensional(parameter:Parameter,n:int,N:int,logscale=False):
+def uniformUnidimensional(parameter:Parameters,n:int,N:int,logscale=False):
     spacing = linspace
     if logscale:
         spacing = logspace
