@@ -96,14 +96,6 @@ def initializationSequential(parameters,optimizer,iterations=100,lr=.005,algo=RM
         Search.append(optimizer.optimization(iterations=iterations))
     return Search
 
-def initializationParallel(optimizer,iterations=100,lr=.005,algo=RMSprop):
-    def optimization(parameters):
-        optimizer.circuit.initialization(parameters)
-        optimizer.parameters,_ = optimizer.circuitParameters()
-        optimizer.initAlgo(lr=lr,algo=algo)
-        return optimizer.optimization(iterations=iterations)
-    return optimization
-
 # Search Space Population
 
 def truncNormalParameters(circuit,subspace,N,var=5):
