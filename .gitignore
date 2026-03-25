@@ -34,6 +34,7 @@ temp-plot.html
 # Data File
 *.pickle
 *.csv
+!Examples/RamseyModeling/dRamsey.csv
 
 # Swap files
 *.swp
