@@ -25,6 +25,10 @@ temp-plot.html
 
 # Plots
 *.html
+!docs/*.html
+!docs/*/*.html
+!docs/**
+
 
 # Image files
 *.png
