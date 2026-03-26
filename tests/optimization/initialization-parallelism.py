@@ -1,5 +1,5 @@
 from multiprocess import Pool,set_start_method
-from des_scq.discovery import uniformParameters,initializationParallel,lossTransition
+from des_scq.discovery import uniformParameters,lossTransition
 from des_scq import models
 from des_scq.optimization import Optimization
 from des_scq.circuit import Kerman
