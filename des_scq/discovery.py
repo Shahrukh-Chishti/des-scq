@@ -458,7 +458,7 @@ def uniformUnidimensional(parameter: Parameters, n: int, N: int,
     spacing = linspace
     if logscale:
         spacing = logspace
-    a, b = parameter.bounds()
+    a, b = parameter.bounds() # must restructure Parameter class for bounds !!!
     a, b = a.item(), b.item()
     if logscale:
         a = log10(a)
