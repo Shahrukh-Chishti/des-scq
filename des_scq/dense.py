@@ -192,7 +192,7 @@ def modeMatrixProduct(A, M, B, mode=(0, 0)):
     Zero matrix elements are skipped to avoid unnecessary tensor products.
     """
     shape = prod([len(a) for a in A])
-    H = null(N=shape)
+    H = null(shape)
     a, b = mode
     nA, nB = M.shape
     for i in range(nA):
@@ -331,7 +331,7 @@ def transformationMatrix(n_charge, n_flux=1, device=None):
     Tensor, shape (N, N), dtype cdouble
         Unitary Fourier transformation matrix.
     """
-    charge_states = chargeStates(n_charge, dtype=complex, device=device)
+    charge_states = chargeStates(n_charge, complex, device)
     N_flux        = 2 * n_charge + 1
     flux_states   = fluxStates(N_flux, n_flux, complex, device) / 2 / n_flux
     # flux points are normalized to (-0.5, 0.5] for the DFT
