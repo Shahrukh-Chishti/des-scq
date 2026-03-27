@@ -10,3 +10,5 @@ ipython>=8.22.1
 pandas>=2.2.1
 pyvis
 requests
+sphinx
+furo
