@@ -9,7 +9,7 @@ def load_requirements(path):
 
 setup(name='des-scq',
         author='Shahrukh Chishti, Carla Illmann',
-        version="0.0.1",
+        version="0.0.2",
         python_requires=">=3.11",
         packages=find_packages(),
         install_requires=load_requirements(root / "requirements.txt"),
