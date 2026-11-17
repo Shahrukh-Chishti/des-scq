@@ -45,7 +45,6 @@ from torch import tensor, abs, stack, var, log
 from torch.optim import RMSprop
 from numpy import meshgrid, linspace, array, log10, random, logspace
 from numpy.random import choice
-from random import seed
 from scipy.stats import truncnorm
 from des_scq.components import Parameters
 
@@ -293,7 +292,7 @@ def lossTransition(E10, E21):
 # ---------------------------------------------------------------------------
 
 def initializationSequential(parameters, optimizer, iterations=100, lr=.005,
-                              algo=RMSprop):
+                              algo=RMSprop, **hyper):
     """Run sequential single-start optimizations from a list of initial points.
 
     For each parameter set in *parameters*, re-initializes the circuit,
@@ -313,6 +312,9 @@ def initializationSequential(parameters, optimizer, iterations=100, lr=.005,
         Learning rate.  Default ``0.005``.
     algo : torch.optim class, optional
         Optimizer algorithm.  Default ``RMSprop``.
+    **hyper
+        Extra hyperparameters forwarded to ``algo`` via
+        :meth:`Optimization.initAlgo`, e.g. ``line_search_fn='strong_wolfe'``.
 
     Returns
     -------
@@ -332,7 +334,7 @@ def initializationSequential(parameters, optimizer, iterations=100, lr=.005,
         optimizer.circuit.initialization(parameter)
         # circuit.initialization rewrites a new tensor
         optimizer.parameters, _ = optimizer.circuitParameters()
-        optimizer.initAlgo(lr=lr, algo=algo)
+        optimizer.initAlgo(lr=lr, algo=algo, **hyper)
         Search.append(optimizer.optimization(iterations=iterations))
     return Search
 
@@ -425,7 +427,7 @@ def uniformParameters(circuit, subspace, n, N, externals=[], random_state=10,
     >>> Search     = initializationSequential(parameters, optim)
     """
     iDs, grid = [], []
-    seed(random_state)
+    random.seed(random_state)
     for component in circuit.network + externals:
         if component.ID in subspace:
             distribution = uniformUnidimensional(component, n, N, logscale)

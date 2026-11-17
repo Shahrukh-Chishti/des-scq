@@ -393,7 +393,7 @@ class Optimization:
     # Optimizer configuration
     # -----------------------------------------------------------------------
 
-    def initAlgo(self, algo=Adam, lr=1e-3):
+    def initAlgo(self, algo=Adam, lr=1e-3, **hyper):
         """Configure the gradient-descent algorithm.
 
         Parameters
@@ -403,6 +403,10 @@ class Optimization:
             Other common choices: ``RMSprop``, ``LBFGS``.
         lr : float, optional
             Learning rate.  Default ``1e-3``.
+        **hyper
+            Extra hyperparameters forwarded to ``algo``, e.g.
+            ``line_search_fn='strong_wolfe'``, ``history_size``, ``max_iter``
+            for ``LBFGS``; ``betas``, ``weight_decay`` for ``Adam``.
 
         Notes
         -----
@@ -415,8 +419,9 @@ class Optimization:
         Example
         -------
         >>> optim.initAlgo(algo=Adam, lr=0.05)
+        >>> optim.initAlgo(algo=LBFGS, lr=1., line_search_fn='strong_wolfe')
         """
-        self.optimizer = algo(self.parameters, lr)
+        self.optimizer = algo(self.parameters, lr=lr, **hyper)
 
     # -----------------------------------------------------------------------
     # Logging
