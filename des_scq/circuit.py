@@ -49,7 +49,6 @@ Conventions
 """
 
 import networkx
-import copy
 import torch
 from contextlib import nullcontext
 from torch import exp, det, norm, tensor, arange, zeros, sqrt, diagonal, eye
@@ -452,7 +451,7 @@ class Circuit:
         -------
         networkx.MultiGraph
         """
-        GL    = copy.deepcopy(self.G)
+        GL    = self.G.copy()      # structure only: components stay shared, tensors uncopied
         edges = []
         for u, v, component in GL.edges(data=True):
             component = component['component']
