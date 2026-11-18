@@ -1,21 +1,48 @@
-# master execution file
-import os
+# master execution file: runs every test script, reports failures, exits non-zero on any
+import subprocess
+import sys
 
-print('Operator definition')
-os.system('python ./tests/operators.py')
+SUITES = {
+    'Operator definition': [
+        'tests/operators.py',
+    ],
+    'Consistency of quantization Sub-rountine': [
+        'tests/consistency/basis.py',
+        'tests/consistency/eigensolvers.py',
+        'tests/consistency/precision.py',
+        'tests/consistency/junction-flux.py',
+        'tests/consistency/parameter-update.py',
+        'tests/consistency/sampling-seed.py',
+    ],
+    'Comparison : DeS-SCQ v/s scQubits': [
+        'tests/comparison/scQ-fluxonium.py',
+        'tests/comparison/scQ-transmon.py',
+        'tests/comparison/scQ-flux-shunted.py',
+        'tests/comparison/scQ-flux-shunted-flux.py',
+    ],
+    'Optimization': [
+        'tests/optimization/spectrum-tuning.py',
+        'tests/optimization/box-qutrit-projection.py',
+        'tests/optimization/initialization-parallelism.py',
+    ],
+}
 
-print('Consistency of quantization Sub-rountine')
-os.system('python ./tests/consistency/backend.py')
-os.system('python ./tests/consistency/basis.py')
-os.system('python ./tests/consistency/eigensolvers.py')
-os.system('python ./tests/consistency/precision.py')
 
-print('Comparison : DeS-SCQ v/s scQubits')
-os.system('python ./tests/comparison/scQ-fluxonium.py')
-os.system('python ./tests/comparison/scQ-transmon.py')
-os.system('python ./tests/comparison/scQ-flux-shunted.py')
+def main():
+    failed = []
+    for title, scripts in SUITES.items():
+        print(title, flush=True)
+        for script in scripts:
+            code = subprocess.run([sys.executable, script]).returncode
+            if code != 0:
+                print(f'FAILED ({code}): {script}', flush=True)
+                failed.append(script)
+    print()
+    if failed:
+        print(f'{len(failed)} script(s) failed:', *failed, sep='\n  ')
+        sys.exit(1)
+    print('All scripts passed')
 
-print('Optimization')
-os.system('python ./tests/optimization/spectrum-tuning.py')
-os.system('python ./tests/optimization/box-qutrit-projection.py')
-os.system('python ./tests/optimization/initialization-parallelism.py')
+
+if __name__ == '__main__':
+    main()

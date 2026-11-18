@@ -449,7 +449,9 @@ def fluxShunted(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
 
     Notes
     -----
-    No control channels (no external flux line).
+    No control channels by default.  The loop is closed by junctions only,
+    so an external loop flux is applied by naming a junction as a control,
+    e.g. ``circuit.control_iD = ('JJ3',)`` (see ``Circuit.loopFlux``).
     """
     Ej1, Ej2, Ej3 = josephson
     C1,  C2,  C3  = cap

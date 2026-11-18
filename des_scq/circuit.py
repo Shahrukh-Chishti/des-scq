@@ -82,7 +82,6 @@ def inverse(A, zero=1e-15):
     if det(A) == 0:
         D = A.diag()
         A[D == 0, D == 0] = tensor(1 / zero)
-        import pdb; pdb.set_trace()
     try:
         A = inv(A)
     except Exception:
@@ -542,7 +541,10 @@ class Circuit:
 
         Traverses the unique path between *u* and *v* in the spanning tree
         and accumulates the external flux from any inductors marked
-        ``external=True`` along that path.
+        ``external=True`` along that path. A flux assigned to the junction
+        *key* itself (its ID in ``control_iD``) is added directly: the
+        fluxoid constraint of a loop closed by junctions only (negligible
+        geometric inductance). Junction IDs on the path are skipped.
 
         Parameters
         ----------
@@ -551,7 +553,7 @@ class Circuit:
         key : str
             Edge identifier.
         external_fluxes : dict {str: Tensor}
-            Mapping from inductor ID to reduced flux value *Φ/Φ₀*.
+            Mapping from inductor or junction ID to reduced flux value *Φ/Φ₀*.
 
         Returns
         -------
@@ -559,13 +561,17 @@ class Circuit:
             Total reduced loop flux.
         """
         flux     = self.null_flux.clone()
+        if key in external_fluxes:
+            flux += external_fluxes[key]
         external = set(external_fluxes.keys())
         S        = self.spanning_tree
         path     = networkx.shortest_path(S, u, v)
         for i in range(len(path) - 1):
             multi = S.get_edge_data(path[i], path[i + 1])
-            match = external.intersection(set(multi.keys()))
-            assert len(match) <= 2
+            match = {iD for iD in external.intersection(set(multi.keys()))
+                     if multi[iD]['component'].__class__ == L}
+            # spanning tree keeps one component per node pair
+            assert len(match) <= 1
             if len(match) == 1:
                 component = multi[match.pop()]['component']
                 assert component.__class__ == L
@@ -681,7 +687,7 @@ class Circuit:
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
-            Maps inductor IDs to reduced flux values *Φ/Φ₀*.
+            Maps inductor or junction IDs to reduced flux values *Φ/Φ₀*.
 
         Returns
         -------
@@ -1087,7 +1093,8 @@ class Kerman(Circuit):
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
-            Maps external-inductor IDs to reduced flux *Φ/Φ₀*.
+            Maps external-inductor or junction IDs to reduced flux *Φ/Φ₀*
+            (see ``loopFlux``).
 
         Returns
         -------
@@ -1224,6 +1231,7 @@ class Charge(Circuit):
         Tensor, shape (N, N), dtype cdouble
             LC Hamiltonian (GHz).
         """
+        self.Cn_, self.Ln_ = self.componentMatrix()
         Cn_, Ln_ = self.Cn_, self.Ln_
         basis = self.basis
         Q = [ basisQq(basis_max) for basis_max in basis]
@@ -1247,7 +1255,8 @@ class Charge(Circuit):
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
-            Maps external-inductor IDs to reduced flux *Φ/Φ₀*.
+            Maps external-inductor or junction IDs to reduced flux *Φ/Φ₀*
+            (see ``loopFlux``).
 
         Returns
         -------
@@ -1302,6 +1311,7 @@ class Charge(Circuit):
         """
         charge = zeros(self.Nn, dtype=float)
         basis  = self.basis
+        self.Cn_, self.Ln_ = self.componentMatrix()
         Cn_    = self.Cn_
         for node, dQ in charge_offset.items():
             charge[self.nodes_[node]] = dQ
@@ -1324,6 +1334,7 @@ class Charge(Circuit):
         -------
         Tensor, shape (N, N), dtype cdouble
         """
+        self.Cn_, self.Ln_ = self.componentMatrix()
         Ln_  = self.Ln_
         basis = self.basis
         F = [basisFq(basis_max) for basis_max in basis]
