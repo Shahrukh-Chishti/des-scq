@@ -63,7 +63,7 @@ def comparison(N):
         spectrum  = graphical.eigenvals(evals_count=4)
         SCQ.append(spectrum)
 
-    flux_manifold = [[tensor(flux),tensor(0.)] for flux in flux_list]
+    flux_manifold = [[tensor(flux)] for flux in flux_list]
     DeS = [spec.detach().numpy() for spec,vec in circuit.spectrumManifold(flux_manifold)]
     return ZP,array(SCQ).T,array(DeS).T
 

@@ -1,5 +1,5 @@
 # Flux-shunted qubit with an external flux through its junction-only loop:
-# des-scq (flux assigned to junction JJ3) against scqubits (flux on its closure branch).
+# des-scq (flux through mesh A) against scqubits (flux on its closure branch).
 #
 # python tests/comparison/scQ-flux-shunted-flux.py
 import torch
@@ -34,7 +34,7 @@ def scqCircuit(N, josephson, cap):
 
 def comparison(N, josephson, cap, levels=4):
     circuit = models.fluxShunted(Charge, [N, N], josephson, cap)
-    circuit.control_iD = ('JJ3',)
+    circuit.control_iD = ('A',)   # the single mesh JJ1-JJ3-JJ2
     circuit.spectrum_limit = levels
     reference = scqCircuit(N, josephson, cap)
     symbol = reference.external_fluxes[0]

@@ -364,7 +364,7 @@ class Elements(Parameters):
 
 
 # ---------------------------------------------------------------------------
-# Concrete element types
+# Lumped element types
 # ---------------------------------------------------------------------------
 
 class J(Elements):
@@ -500,11 +500,6 @@ class L(Elements):
         Inductive energy *Φ₀²/4π²L·h* in GHz.
     ID : str, optional
         Element identifier (e.g., ``'Lx'``).
-    external : bool, optional
-        If ``True``, this inductor is used as an external flux-bias line
-        rather than a circuit element.  External inductors contribute loop
-        flux but are excluded from gradient updates by convention.
-        Default ``False``.
     L0 : float, optional
         Sigmoid scale.  Default ``1200`` GHz.
     L_ : float, optional
@@ -517,12 +512,11 @@ class L(Elements):
     To convert from SI Henrys: ``El = indE(L_henrys)``.
     """
 
-    def __init__(self, plus, minus, El, ID=None, external=False,
+    def __init__(self, plus, minus, El, ID=None,
                  L0=L0, L_=L_, device=None, dtype=float, requires_grad=True):
         super().__init__(plus, minus, ID, device, dtype, requires_grad)
         self.L0       = L0
         self.L_       = L_
-        self.external = external
         self.initInd(El)
 
     def initInd(self, El):

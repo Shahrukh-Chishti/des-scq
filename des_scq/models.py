@@ -129,7 +129,7 @@ def splitTransmon(Rep, basis):
     Topology: two junctions in a loop bridged by a flux-bias inductor.
     The external flux tunes the effective Josephson energy::
 
-        0 --J-- 1 --L(ext)-- 2 --J-- 0
+        0 --J-- 1 --L-- 2 --J-- 0
 
     with capacitors across each junction.
 
@@ -146,12 +146,12 @@ def splitTransmon(Rep, basis):
 
     Notes
     -----
-    Control channel: ``'I'`` (external flux, string ID).
+    Control channel: ``'A'`` (external flux through the loop mesh).
     """
-    transmon_net = [J(0, 1, 10.),  C(0, 1, 100.),
-                    L(1, 2, .0003, 'I', external=True),
-                    J(2, 0, 10.),  C(2, 0, 100.)]
-    control_iD   = ('I',)
+    transmon_net = [J(0, 1, 10., 'J1'),  C(0, 1, 100., 'C1'),
+                    L(1, 2, .0003, 'I'),
+                    J(2, 0, 10., 'J2'),  C(2, 0, 100., 'C2')]
+    control_iD   = ('A',)
     return Rep(transmon_net, control_iD, basis)
 
 
@@ -185,7 +185,7 @@ def fluxonium(Rep, basis, El=.0003, Ec=.1, Ej=20.):
 
     Notes
     -----
-    Control channel: ``'I'`` (external flux, string ID).
+    Control channel: ``'A'`` (external flux through the loop mesh).
 
     Example
     -------
@@ -195,8 +195,8 @@ def fluxonium(Rep, basis, El=.0003, Ec=.1, Ej=20.):
     """
     circuit    = [C(0, 1, Ec, 'Cap'),
                   J(0, 1, Ej, 'JJ'),
-                  L(0, 1, El, 'I',  external=True)]
-    control_iD = ('I',)
+                  L(0, 1, El, 'I')]
+    control_iD = ('A',)
     return Rep(circuit, control_iD, basis)
 
 
@@ -286,7 +286,8 @@ def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
 
     Notes
     -----
-    Control channels: ``'Lx'``, ``'Ly'`` (external flux on both inductors).
+    Control channel: ``'A'`` (external flux through the single loop
+    Lx-Jx-Ly-Jy).
 
     Example
     -------
@@ -294,8 +295,8 @@ def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     >>> basis   = {'O': [32], 'I': [], 'J': [8, 8]}
     >>> circuit = zeroPi(Kerman, basis, Ej=10., Ec=50., El=0.5, symmetry=True)
     """
-    circuit  = [L(0, 1, El, 'Lx',  external=True, L0=_L_[1], L_=_L_[0]),
-                L(2, 3, El, 'Ly',  external=True, L0=_L_[1], L_=_L_[0])]
+    circuit  = [L(0, 1, El, 'Lx', L0=_L_[1], L_=_L_[0]),
+                L(2, 3, El, 'Ly', L0=_L_[1], L_=_L_[0])]
     circuit += [C(1, 2, Ec,  'Cx',  C0=_C_[1], C_=_C_[0]),
                 C(3, 0, Ec,  'Cy',  C0=_C_[1], C_=_C_[0])]
     circuit += [J(1, 3, Ej,  'Jx',  J0=_J_[1], J_=_J_[0]),
@@ -305,7 +306,7 @@ def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     pairs = {}
     if symmetry:
         pairs = {'Ly': 'Lx', 'Cy': 'Cx', 'Jy': 'Jx', 'CJy': 'CJx'}
-    control_iD = ('Lx', 'Ly')
+    control_iD = ('A',)
     return Rep(circuit, control_iD, basis, pairs, device)
 
 
@@ -340,17 +341,18 @@ def prismon(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
 
     Notes
     -----
-    Control channels: ``'La'``, ``'Lb'``, ``'Lc'`` (three external flux lines).
+    Control channel: ``'A'`` (external flux through the single six-element
+    ring La-Ja-Lb-Jc-Lc-Jb).
     """
-    circuit  = [L(0, 1, El, 'La', external=True, L0=_L_[1], L_=_L_[0]),
+    circuit  = [L(0, 1, El, 'La', L0=_L_[1], L_=_L_[0]),
                 C(0, 2, Ec, 'Ca', C0=_C_[1], C_=_C_[0]),
                 J(1, 2, Ej, 'Ja', J0=_J_[1], J_=_J_[0]),
                 C(1, 2, EcJ,'CJa',C0=_CJ_[1],C_=_CJ_[0])]
-    circuit += [L(2, 3, El, 'Lb', external=True, L0=_L_[1], L_=_L_[0]),
+    circuit += [L(2, 3, El, 'Lb', L0=_L_[1], L_=_L_[0]),
                 C(1, 5, Ec, 'Cb', C0=_C_[1], C_=_C_[0]),
                 J(0, 4, Ej, 'Jb', J0=_J_[1], J_=_J_[0]),
                 C(0, 4, EcJ,'CJb',C0=_CJ_[1],C_=_CJ_[0])]
-    circuit += [L(5, 4, El, 'Lc', external=True, L0=_L_[1], L_=_L_[0]),
+    circuit += [L(5, 4, El, 'Lc', L0=_L_[1], L_=_L_[0]),
                 C(4, 3, Ec, 'Cc', C0=_C_[1], C_=_C_[0]),
                 J(3, 5, Ej, 'Jc', J0=_J_[1], J_=_J_[0]),
                 C(3, 5, EcJ,'CJc',C0=_CJ_[1],C_=_CJ_[0])]
@@ -360,7 +362,7 @@ def prismon(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
                  'Cb': 'Ca', 'Cc': 'Ca',
                  'Lb': 'La', 'Lc': 'La',
                  'CJb': 'CJa', 'CJc': 'CJa'}
-    control_iD = ('La', 'Lb', 'Lc')
+    control_iD = ('A',)
     return Rep(circuit, control_iD, basis, pairs)
 
 
@@ -373,7 +375,7 @@ def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
     external-flux-bias inductor::
 
         1 --J1(C1)-- 2 --J2(C2)-- 3 --J3(C3)-- 0
-        0 --L(I,ext)-- 1
+        0 --L(I)-- 1
 
     Parameters
     ----------
@@ -401,7 +403,7 @@ def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
 
     Notes
     -----
-    Control channel: ``'I'`` (external flux, string ID).
+    Control channel: ``'A'`` (external flux through the loop mesh).
 
     Example
     -------
@@ -416,11 +418,11 @@ def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
     circuit  = [J(1, 2, Ej1, 'JJ1'), C(1, 2, C1, 'C1', _C_[1], _C_[0])]
     circuit += [J(2, 3, Ej2, 'JJ2'), C(2, 3, C2, 'C2', _C_[1], _C_[0])]
     circuit += [J(3, 0, Ej3, 'JJ3'), C(3, 0, C3, 'C3', _C_[1], _C_[0])]
-    circuit += [L(0, 1, ind, 'I', external=True)]
+    circuit += [L(0, 1, ind, 'I')]
     pairs = {}
     if symmetry:
         pairs = {'JJ3': 'JJ1', 'C3': 'C1'}
-    return Rep(circuit, ['I'], basis, pairs)
+    return Rep(circuit, ('A',), basis, pairs)
 
 
 def fluxShunted(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
@@ -450,8 +452,8 @@ def fluxShunted(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
     Notes
     -----
     No control channels by default.  The loop is closed by junctions only,
-    so an external loop flux is applied by naming a junction as a control,
-    e.g. ``circuit.control_iD = ('JJ3',)`` (see ``Circuit.loopFlux``).
+    so an external loop flux is applied through its mesh,
+    ``circuit.control_iD = ('A',)`` (see ``Circuit.loopFlux``).
     """
     Ej1, Ej2, Ej3 = josephson
     C1,  C2,  C3  = cap
@@ -522,21 +524,24 @@ def box4Branches(Rep, basis, Ej, Ec, El):
 
     Notes
     -----
-    Control channel: ``'L0'`` (external flux on branch 0).
+    Control channel: ``'E'`` (external flux through the J0-L0 mesh).
+    Meshes B, C, D are the J-L loops of branches 2, 1, 3; mesh A, the
+    inner ring, is closed by an inductor and cannot carry flux.  Mesh labels
+    follow the spanning tree, so print ``circuit.meshes`` after changing Ej.
     """
-    circuit  = [L(0, 1, El[0], 'L0', external=True, L0=L0, L_=L_),
+    circuit  = [L(0, 1, El[0], 'L0', L0=L0, L_=L_),
                 C(0, 1, Ec[0], 'C0', C0, C_),
                 J(0, 1, Ej[0], 'J0', J0, J_)]
-    circuit += [L(1, 2, El[1], 'L1', external=True, L0=L0, L_=L_),
+    circuit += [L(1, 2, El[1], 'L1', L0=L0, L_=L_),
                 C(1, 2, Ec[1], 'C1', C0, C_),
                 J(1, 2, Ej[1], 'J1', J0, J_)]
-    circuit += [L(2, 3, El[2], 'L2', external=True, L0=L0, L_=L_),
+    circuit += [L(2, 3, El[2], 'L2', L0=L0, L_=L_),
                 C(2, 3, Ec[2], 'C2', C0, C_),
                 J(2, 3, Ej[2], 'J2', J0, J_)]
-    circuit += [L(3, 0, El[3], 'L3', external=True, L0=L0, L_=L_),
+    circuit += [L(3, 0, El[3], 'L3', L0=L0, L_=L_),
                 C(3, 0, Ec[3], 'C3', C0, C_),
                 J(3, 0, Ej[3], 'J3', J0, J_)]
-    control_iD = ['L0']
+    control_iD = ('E',)
     return Rep(circuit, control_iD, basis)
 
 
@@ -565,24 +570,24 @@ def phaseSlip(Rep, basis,
 
     Notes
     -----
-    Control channels: ``'Ltl'``, ``'Lbl'``, ``'Ltr'``, ``'Lbr'``, ``'Ll'``
-    (five external flux lines).
+    Control channels: ``'A'``, ``'B'``, ``'C'`` (external flux through the
+    three meshes; print ``circuit.meshes`` for their boundaries).
     """
     La, Lb, Lc, Ld, Le = inductance
     Ca, Cb, Cc, Cd, Ce, Cf, Cg = capacitance
     circuit  = [C(0, 1, Ca)]
-    circuit += [L(1, 3, La, 'Ltl', external=True),
-                L(1, 4, Lb, 'Lbl', external=True)]
+    circuit += [L(1, 3, La, 'Ltl'),
+                L(1, 4, Lb, 'Lbl')]
     circuit += [J(3, 2, 10.), J(4, 2, 10.)]
     circuit += [C(3, 2, Cb),  C(4, 2, Cc)]
     circuit += [C(2, 5, Cd),  C(2, 6, Ce)]
     circuit += [J(2, 5, 10.), J(2, 6, 100.)]
     circuit += [C(2, 0, Cf)]
-    circuit += [L(5, 7, Lc, 'Ltr', external=True),
-                L(6, 7, Ld, 'Lbr', external=True)]
-    circuit += [L(1, 7, Le, 'Ll',  external=True)]
+    circuit += [L(5, 7, Lc, 'Ltr'),
+                L(6, 7, Ld, 'Lbr')]
+    circuit += [L(1, 7, Le, 'Ll')]
     circuit += [C(7, 0, Cg)]
-    control_iD = ('Ltl', 'Lbl', 'Ltr', 'Lbr', 'Ll')
+    control_iD = ('A', 'B', 'C')
     return Rep(circuit, control_iD, basis)
 
 
@@ -594,4 +599,4 @@ if __name__ == '__main__':
     circuit = shuntedQubit(Kerman, basis)
     print(circuit.kermanDistribution())
     H_LC = circuit.hamiltonianLC()
-    H_J  = circuit.hamiltonianJosephson({'I': tensor(.25)})
+    H_J  = circuit.hamiltonianJosephson({'A': tensor(.25)})

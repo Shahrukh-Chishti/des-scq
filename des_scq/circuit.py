@@ -127,6 +127,70 @@ def hamiltonianEnergy(H):
     return eigvalsh(H)
 
 
+def parseMeshes(GL, tree, rank):
+    """Define the meshes of the inductive graph and the loops of its chords.
+
+    Meshes are the faces of the planar embedding of *GL* (its smallest
+    loops), labelled ``'A', 'B', …`` and sharing one orientation.  Each
+    chord (element outside *tree*) closes one mesh; with the outer face as
+    root, the chords' dual edges form a tree over the faces, and a chord's
+    loop encloses its own mesh and every mesh below it.
+
+    Parameters
+    ----------
+    GL : networkx.MultiGraph
+        Inductive graph (capacitors removed); parallel elements allowed.
+    tree : networkx.MultiGraph
+        Spanning tree (or forest) of *GL*.
+    rank : dict {key: int}
+        Element ID → edge index; orders mesh labels and breaks ties for the
+        outer face (longest boundary).
+
+    Returns
+    -------
+    closures : dict {key: (int, list of str)}
+        Chord ID → (sign, meshes its loop encloses, own mesh first).  Sign
+        is +1 when the mesh orientation runs along the chord's *u → v*.
+    meshes : dict {str: list of key}
+        Mesh label → IDs of its boundary elements, in orientation order.
+    """
+    S, start = networkx.Graph(), {}             # embeddings hold no parallel edges:
+    for u, v, k in GL.edges(keys=True):         # a repeated pair gets a mid node
+        path = [u, ('mid', k), v] if S.has_edge(u, v) else [u, v]
+        networkx.add_path(S, path, ID=k)
+        start[k] = tuple(path[:2])
+    planar, E = networkx.check_planarity(S)
+    if not planar:
+        raise ValueError('inductive graph is not planar: meshes are undefined')
+
+    face, boundary = {}, []                     # half-edge → face, face → element IDs
+    for h in E.edges():
+        if h not in face:
+            halves = set()
+            nodes  = E.traverse_face(*h, mark_half_edges=halves)
+            face.update(dict.fromkeys(halves, len(boundary)))
+            boundary.append(list(dict.fromkeys(S.edges[a, b]['ID'] for a, b in zip(nodes, nodes[1:] + nodes[:1]))))
+
+    branches = {k for *_, k in tree.edges(keys=True)}
+    dual = networkx.Graph()                     # chords' duals: a spanning forest of faces
+    for k, h in start.items():
+        if k not in branches:
+            dual.add_edge(face[h], face[h[::-1]], ID=k, side=face[h])
+
+    outer = lambda c: min(c, key=lambda f: (-len(boundary[f]), min(map(rank.get, boundary[f]))))
+    loops = {}                                  # chord → (sign, faces its loop encloses)
+    for c in networkx.connected_components(dual):
+        T = networkx.bfs_tree(dual, outer(c))
+        for f, g in T.edges():
+            loops[dual[f][g]['ID']] = (1 if dual[f][g]['side'] == g else -1,
+                                      [g, *networkx.descendants(T, g)])
+    order = sorted(loops, key=rank.get)
+    label = {loops[k][1][0]: chr(65 + i % 26) * (i // 26 + 1) for i, k in enumerate(order)}
+    closures = {k: (loops[k][0], [label[f] for f in loops[k][1]]) for k in order}
+    meshes   = {label[f]: boundary[f] for f in label}
+    return closures, meshes
+
+
 # ---------------------------------------------------------------------------
 # Base circuit class
 # ---------------------------------------------------------------------------
@@ -172,6 +236,11 @@ class Circuit:
         then capacitors and junctions.
     edges_inductive : dict {int: (u, v, key)}
         Inductive edges only.
+    closures : dict {key: (int, list of str)}
+        Spanning-tree chord ID → (orientation sign, labels of the meshes
+        ``'A', 'B', …`` its loop encloses, own mesh first).
+    meshes : dict {str: list of key}
+        Mesh label → IDs of its boundary elements (the mesh definition).
     Nn : int
         Number of active (non-ground) nodes.
     spectrum_limit : int
@@ -181,7 +250,8 @@ class Circuit:
     -----
     Topology rules enforced by the code:
 
-    * No two external flux inductors in parallel (would be redundant).
+    * The inductive graph (capacitors removed) must be planar: external
+      flux threads its meshes.
     * No *LC* pair in parallel (degenerate inversion of capacitance matrix).
     * Josephson junctions may be placed in parallel.
     """
@@ -194,6 +264,8 @@ class Circuit:
         self.spanning_tree = self.spanningTree()
         self.nodes, self.nodes_ = self.nodeIndex()
         self.edges, self.edges_inductive = self.edgesIndex()
+        rank = {key: index for index, (u, v, key) in self.edges.items()}
+        self.closures, self.meshes = parseMeshes(self.graphGL(), self.spanning_tree, rank)
         self.Nn = len(self.nodes)
         self.Ne = len(self.edges)
         self.Nb = len(self.edges_inductive)
@@ -536,48 +608,48 @@ class Circuit:
     # -----------------------------------------------------------------------
 
     def loopFlux(self, u, v, key, external_fluxes):
-        """Compute the total external flux threading the loop containing
+        """Compute the total external flux threading the loop closed by
         edge *(u, v, key)*.
 
-        Traverses the unique path between *u* and *v* in the spanning tree
-        and accumulates the external flux from any inductors marked
-        ``external=True`` along that path. A flux assigned to the junction
-        *key* itself (its ID in ``control_iD``) is added directly: the
-        fluxoid constraint of a loop closed by junctions only (negligible
-        geometric inductance). Junction IDs on the path are skipped.
+        The loop of a spanning-tree chord encloses the meshes listed in
+        ``closures[key]``, so the loop flux is the sum of their external
+        fluxes, times the chord's orientation sign.  Tree branches close no
+        loop and carry zero flux.
 
         Parameters
         ----------
         u, v : int
-            Node indices of the Josephson junction whose loop flux is needed.
+            End nodes of the edge, oriented as in ``edges``.
         key : str
             Edge identifier.
         external_fluxes : dict {str: Tensor}
-            Mapping from inductor or junction ID to reduced flux value *Φ/Φ₀*.
+            Mesh label (``meshes``) → reduced flux *Φ/Φ₀*; meshes not
+            listed carry zero flux.
 
         Returns
         -------
         Tensor (scalar)
             Total reduced loop flux.
+
+        Raises
+        ------
+        NotImplementedError
+            Flux on a mesh closed by an inductor (needs a linear inductive
+            term, not implemented).
         """
-        flux     = self.null_flux.clone()
-        if key in external_fluxes:
-            flux += external_fluxes[key]
-        external = set(external_fluxes.keys())
-        S        = self.spanning_tree
-        path     = networkx.shortest_path(S, u, v)
-        for i in range(len(path) - 1):
-            multi = S.get_edge_data(path[i], path[i + 1])
-            match = {iD for iD in external.intersection(set(multi.keys()))
-                     if multi[iD]['component'].__class__ == L}
-            # spanning tree keeps one component per node pair
-            assert len(match) <= 1
-            if len(match) == 1:
-                component = multi[match.pop()]['component']
-                assert component.__class__ == L
-                assert component.external == True
-                flux += external_fluxes[component.ID]
-        return flux
+        chords     = {meshes[0]: k for k, (_, meshes) in self.closures.items()}
+        components = self.circuitComposition()
+        for mesh in external_fluxes:
+            if components[chords[mesh]].__class__ == L:
+                raise NotImplementedError(f'mesh {mesh!r} is closed by an inductor')
+        flux = self.null_flux.clone()
+        if key not in self.closures:
+            return flux
+        sign, meshes = self.closures[key]
+        for mesh in meshes:
+            if mesh in external_fluxes:
+                flux += external_fluxes[mesh]
+        return sign * flux
 
     # -----------------------------------------------------------------------
     # Component accessors
@@ -598,23 +670,6 @@ class Circuit:
                 edges.append((u, v, key))
                 Ej.append(component.energy())
         return edges, Ej
-
-    def fluxBiasComponents(self):
-        """Return edges and inductance functions of all external flux biases.
-
-        Returns
-        -------
-        edges : list of (u, v, key)
-        L_ext : list of callables
-            Each callable returns the inductance value in natural units.
-        """
-        edges, L_ext = [], []
-        for index, (u, v, key) in self.edges.items():
-            component = self.G[u][v][key]['component']
-            if component.__class__ == L and component.external:
-                edges.append((u, v, key))
-                L_ext.append(component.inductance)
-        return edges, L_ext
 
     def modeImpedance(self):
         """Return per-mode impedance *Z_i = √(Cn_[i,i] / Ln_[i,i])*.
@@ -1358,5 +1413,5 @@ if __name__ == '__main__':
     circuit = models.shuntedQubit(Kerman, basis)
     H_LC    = circuit.hamiltonianLC()
     H_J     = circuit.hamiltonianJosephson
-    eigen   = eigvalsh(H_LC + H_J({'I': tensor(.225)}))
+    eigen   = eigvalsh(H_LC + H_J({'A': tensor(.225)}))
     print(eigen[:4])

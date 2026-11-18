@@ -31,7 +31,7 @@ def zeroPiSpectrum(Rep,basis):
     print('resonator frequency:',sqrt(8*Ej*Ec))
     print('potential energy bound:',Ej)
     circuit = zeroPi(Rep,basis,El=El,Ec=Ec,Ej=Ej,symmetry=True)
-    flux_manifold = [[tensor(flux),tensor(0.)] for flux in flux_range]
+    flux_manifold = [[tensor(flux)] for flux in flux_range]
     spectrum = circuit.spectrumManifold(flux_manifold)
     spectrum = stack([val for val,vec in spectrum]).detach().numpy().T
     return spectrum
