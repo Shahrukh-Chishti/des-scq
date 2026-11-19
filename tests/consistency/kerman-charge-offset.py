@@ -36,7 +36,20 @@ def testTransmon():
     assert transitions[0] - transitions[-1] > 1e-2   # the offset reaches the spectrum
 
 
+def testIslandJunction():
+    """Transmon coupled to a floating island (one island, one junction mode):
+    offsets on both nodes exercise the island-junction cross terms (Cij)."""
+    network = [J(0, 1, 4., 'J'), C(0, 1, .4, 'C'),
+               C(1, 2, 1., 'Cc'), C(2, 0, .8, 'Ci')]
+    points = [[ng, .15] for ng in offsets]
+    deviation = max(float((Ek - Eq).abs().max())
+                    for Ek, Eq in spectra(network, (1, 2), {'O': [], 'I': [8], 'J': [12]}, [12, 8], points))
+    print(f'island + junction: max |E_kerman - E_charge| = {deviation:.1e} GHz')
+    assert deviation < 1e-9, deviation
+
+
 if __name__ == '__main__':
     print('Charge offset in the Kerman basis')
     testTransmon()
+    testIslandJunction()
     print('PASS')

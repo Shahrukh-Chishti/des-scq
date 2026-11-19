@@ -1208,9 +1208,9 @@ class Kerman(Circuit):
         H = modeMatrixProduct(Q,Coi_,I,(0,No))
         H += modeMatrixProduct(Q,Coj_,I,(0,No+Ni))
         
-        H += modeMatrixProduct(I,Coj_,Q,(No+Ni,No))
-        H += modeMatrixProduct(Q,Coj_,I,(No+Ni,No))
-        H -= modeMatrixProduct(I,Coj_,I,(No+Ni,No))
+        H += modeMatrixProduct(I,Cij_,Q,(No,No+Ni))
+        H += modeMatrixProduct(Q,Cij_,I,(No,No+Ni))
+        H -= modeMatrixProduct(I,Cij_,I,(No,No+Ni))
         
         H += modeMatrixProduct(I,Ci_,Q,(No,No))/2
         H += modeMatrixProduct(Q,Ci_,I,(No,No))/2
