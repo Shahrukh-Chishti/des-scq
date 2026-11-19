@@ -99,7 +99,7 @@ class Optimization:
         from torch import tensor, float64 as double
 
         circuit = models.transmon(Charge, [256])
-        flux_profile = [dict()]   # no external flux
+        flux_profile = [[]]   # one control point; transmon has no controls
         E10_target = tensor([5.0], dtype=double)
         E21_target = tensor([4.8], dtype=double)
         loss_fn    = lossTransition(E10_target, E21_target)

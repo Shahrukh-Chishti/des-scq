@@ -207,10 +207,10 @@ class Circuit:
         All lumped elements (``J``, ``C``, ``L``) in the circuit.  Node
         indices inside each element define the graph topology.
     control_iD : tuple or list
-        IDs of control elements.  String IDs correspond to inductive
-        branches (external flux control); integer IDs correspond to nodes
-        (charge-offset control).  The order must match the control vectors
-        supplied to ``spectrumManifold``.
+        Control channels.  String IDs are mesh labels (``meshes``) carrying
+        an external flux; integer IDs are nodes carrying a charge offset.
+        The order must match the control vectors supplied to
+        ``spectrumManifold``.
     basis : list or dict
         Hilbert-space truncation.  For ``Charge``: a list of per-node
         truncations, e.g., ``[256]``.  For ``Kerman``: a dict with keys
@@ -741,7 +741,8 @@ class Circuit:
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
-            Maps inductor or junction IDs to reduced flux values *Φ/Φ₀*.
+            Maps mesh labels (``meshes``) to reduced flux *Φ/Φ₀*
+            (see ``loopFlux``).
 
         Returns
         -------
@@ -1152,7 +1153,7 @@ class Kerman(Circuit):
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
-            Maps external-inductor or junction IDs to reduced flux *Φ/Φ₀*
+            Maps mesh labels (``meshes``) to reduced flux *Φ/Φ₀*
             (see ``loopFlux``).
 
         Returns
@@ -1315,7 +1316,7 @@ class Charge(Circuit):
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
-            Maps external-inductor or junction IDs to reduced flux *Φ/Φ₀*
+            Maps mesh labels (``meshes``) to reduced flux *Φ/Φ₀*
             (see ``loopFlux``).
 
         Returns
@@ -1389,6 +1390,8 @@ class Charge(Circuit):
         Parameters
         ----------
         external_fluxes : dict {str: Tensor}, optional
+            Maps mesh labels (``meshes``) to reduced flux *Φ/Φ₀*
+            (see ``loopFlux``).
 
         Returns
         -------
