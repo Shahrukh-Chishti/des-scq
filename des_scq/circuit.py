@@ -680,21 +680,16 @@ class Circuit:
         Cn_, Ln_, basis = self.Cn_, self.Ln_, self.basis
         return [sqrt(Cn_[i, i] / Ln_[i, i]) for i in range(len(basis))]
 
+    def floatingComponents(self, elements=[C]):
+        """Connected components of the graph without *elements* that do not
+        contain ground (node sets)."""
+        components = networkx.connected_components(self.graphGL(elements=elements))
+        return [component for component in components if 0 not in component]
+
     def islandModes(self):
-        """Count the number of island modes.
-
-        An island is a connected component of the graph that has no inductive
-        (or Josephson) path to ground.  Its flux coordinate does not appear
-        in the Hamiltonian.
-
-        Returns
-        -------
-        int
-            Number of island modes *Ni*.
-        """
-        islands = self.graphGL(elements=[C])
-        islands = list(networkx.connected_components(islands))
-        return sum(1 for sub in islands if 0 not in sub)
+        """Count the island modes: components with no inductive (L or J)
+        path to ground."""
+        return len(self.floatingComponents([C]))
 
     def basisSize(self, modes=False):
         """Return the total Hilbert-space dimension.
@@ -908,7 +903,9 @@ class Kerman(Circuit):
     No, Ni, Nj : int
         Number of oscillator, island, and Josephson modes.
     R : Tensor
-        Kerman transformation matrix (real part of eigenvectors of *Ln_*).
+        Kerman transformation matrix, θ = R φ.  Columns of *R⁻¹*: oscillator
+        eigenvectors of *Ln_*, then integer island/Josephson vectors (see
+        ``kermanTransform``).
 
     Notes
     -----
@@ -970,19 +967,35 @@ class Kerman(Circuit):
         return No,Ni,Nj
 
     def kermanTransform(self):
-        """Compute the mode transformation matrix *R*.
+        """Mode transformation *R* (θ = R φ); the columns of *M = R⁻¹* are the
+        mode vectors, ordered O | I | J.
 
-        *R* is the matrix whose columns are the eigenvectors of *Ln_* sorted
-        by descending eigenvalue (oscillator modes first, zero modes last).
-
-        Returns
-        -------
-        Tensor, shape (Nn, Nn)
-            Real transformation matrix.
+        * O: eigenvectors of *Ln_* with nonzero eigenvalue.
+        * I, J: indicator vectors (1 on the nodes of a set, 0 elsewhere).  A
+          2π shift of every node in a floating inductive piece is a symmetry,
+          so these integer vectors keep the charge lattice of the I/J modes
+          intact (normalized null-space eigenvectors would rescale it).
+          Each island contributes its own indicator as an I column, and
+          the indicators of all but one of its inductive pieces as J
+          columns; pieces in grounded components are all J columns.
         """
         Ln_ = self.Ln_
-        R   = diagonalisation(Ln_.detach(), reverse=True).to(float)
-        return R
+        V   = diagonalisation(Ln_.detach(), reverse=True).real.to(float)
+
+        def indicator(labels):
+            vector = zeros(self.Nn, dtype=float, device=Ln_.device)
+            vector[[self.nodes_[node] for node in labels]] = 1.
+            return vector
+
+        islands = self.floatingComponents([C])
+        pieces  = self.floatingComponents([C, J])
+        island_modes    = [indicator(island) for island in islands]
+        josephson_modes = [indicator(piece) for piece in pieces
+                           if not any(piece <= island for island in islands)]
+        for island in islands:
+            josephson_modes += [indicator(piece) for piece in pieces if piece <= island][:-1]
+        assert (len(island_modes), len(josephson_modes)) == (self.Ni, self.Nj)
+        return inv(torch.column_stack([V[:, :self.No], *island_modes, *josephson_modes]))
 
     def kermanComponents(self):
         """Extract block-diagonal O/I/J components from the transformed
@@ -1187,7 +1200,7 @@ class Kerman(Circuit):
         charge = zeros(self.Nn,dtype=float)
         for node,dQ in charge_offset.items():
             charge[self.nodes_[node]] = dQ
-        charge = self.R@charge
+        charge = inv(self.R).T@charge     # charges transform with R⁻ᵀ (R not orthogonal)
 
         No,Ni,Nj = self.kermanDistribution() #No,self.Ni,self.Nj
 
