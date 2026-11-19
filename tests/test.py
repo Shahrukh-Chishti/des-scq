@@ -13,6 +13,7 @@ SUITES = {
         'tests/consistency/junction-flux.py',
         'tests/consistency/parameter-update.py',
         'tests/consistency/sampling-seed.py',
+        'tests/consistency/kerman-charge-offset.py',
     ],
     'Comparison : DeS-SCQ v/s scQubits': [
         'tests/comparison/scQ-fluxonium.py',

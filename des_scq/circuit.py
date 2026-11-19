@@ -1182,6 +1182,7 @@ class Kerman(Circuit):
         return H / 2
     
     def hamiltonianChargeOffset(self,charge_offset=dict()):
+        basis = self.basis
         charge = zeros(self.Nn,dtype=float)
         for node,dQ in charge_offset.items():
             charge[self.nodes_[node]] = dQ
