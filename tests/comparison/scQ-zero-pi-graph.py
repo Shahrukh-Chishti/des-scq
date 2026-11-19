@@ -8,8 +8,8 @@ from des_scq.circuit import Charge
 from des_scq.utils import plotCompare
 set_num_threads(32)
 
-Ej = 30.02 ; Ec = 10.2
-EcJ = 50. ; El = 5.
+Ej = 10. ; Ec = .5   # soft 0-pi regime
+EcJ = 5. ; El = 1.
 N = 3
 ng_list = linspace(-1, 1, 101)
 flux_list = linspace(0,1,21)

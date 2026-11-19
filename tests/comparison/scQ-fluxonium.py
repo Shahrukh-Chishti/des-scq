@@ -6,8 +6,7 @@ from des_scq.circuit import Kerman
 from des_scq.utils import plotCompare
 set_num_threads(32)
 
-Ej = 30.02 ; Ec = 10.2
-El = .5
+Ej = 8.9 ; Ec = 2.5 ; El = .5   # Manucharyan et al. (2009)
 N = 256
 flux_range = linspace(0,1,21)
 limit = 4

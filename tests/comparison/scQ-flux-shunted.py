@@ -8,10 +8,10 @@ from des_scq.circuit import Charge
 from des_scq.utils import plotCompare
 set_num_threads(32)
 
-Ej = 30.02 ; Ec = 10.2
 N = 8
-josephson = [2*Ej,12.5*Ej,2*Ej]
-cap = [25*Ec,Ec,5*Ec]
+# 3-junction flux qubit: Ej/Ec = 50, small junction alpha = 0.7 (Ec scales as 1/alpha)
+josephson = [50., 35., 50.]
+cap = [1., 1.43, 1.]
 ng_list = linspace(-1, 1, 101)
 
 def fluxShunted(Rep,basis,josephson=[120.,50,120.],cap=[10.,50.,10.],symmetry=False):

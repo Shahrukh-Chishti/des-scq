@@ -147,15 +147,19 @@ def splitTransmon(Rep, basis):
     Notes
     -----
     Control channel: ``'A'`` (external flux through the loop mesh).
+
+    Element values: *Ej = 10* GHz per junction, *Ec = 0.6* GHz per shunt
+    (0.3 GHz combined), loop *El = 150* GHz (~1 nH geometric inductance);
+    *f01 ≈ 6.6* GHz at zero flux.
     """
-    transmon_net = [J(0, 1, 10., 'J1'),  C(0, 1, 100., 'C1'),
-                    L(1, 2, .0003, 'I'),
-                    J(2, 0, 10., 'J2'),  C(2, 0, 100., 'C2')]
+    transmon_net = [J(0, 1, 10., 'J1'),  C(0, 1, .6, 'C1'),
+                    L(1, 2, 150., 'I'),
+                    J(2, 0, 10., 'J2'),  C(2, 0, .6, 'C2')]
     control_iD   = ('A',)
     return Rep(transmon_net, control_iD, basis)
 
 
-def fluxonium(Rep, basis, El=.0003, Ec=.1, Ej=20.):
+def fluxonium(Rep, basis, El=.5, Ec=2.5, Ej=8.9):
     """Fluxonium qubit.
 
     Topology: a Josephson junction shunted by a large linear superinductance
@@ -173,11 +177,11 @@ def fluxonium(Rep, basis, El=.0003, Ec=.1, Ej=20.):
         Hilbert-space truncation.  For oscillator-dominant regime, use
         Kerman with ``basis = {'O': [64], 'I': [], 'J': []}``.
     El : float, optional
-        Inductive energy in GHz.  Default ``0.0003``.
+        Inductive energy in GHz.  Default ``0.5``.
     Ec : float, optional
-        Charging energy in GHz.  Default ``0.1``.
+        Charging energy in GHz.  Default ``2.5``.
     Ej : float, optional
-        Josephson energy in GHz.  Default ``20.0``.
+        Josephson energy in GHz.  Default ``8.9``.
 
     Returns
     -------
@@ -187,11 +191,16 @@ def fluxonium(Rep, basis, El=.0003, Ec=.1, Ej=20.):
     -----
     Control channel: ``'A'`` (external flux through the loop mesh).
 
+    Defaults follow Manucharyan et al., Science 326, 113 (2009).  A
+    fluxonium wavefunction spreads over several flux quanta, which the
+    ``Charge`` basis (flux confined to one period) cannot represent: use
+    ``Kerman``.
+
     Example
     -------
     >>> from des_scq.circuit import Kerman
     >>> basis   = {'O': [64], 'I': [], 'J': []}
-    >>> circuit = fluxonium(Kerman, basis, El=0.1, Ec=1., Ej=50.)
+    >>> circuit = fluxonium(Kerman, basis, El=0.13, Ec=0.48, Ej=3.4)  # heavy fluxonium
     """
     circuit    = [C(0, 1, Ec, 'Cap'),
                   J(0, 1, Ej, 'JJ'),
@@ -200,7 +209,7 @@ def fluxonium(Rep, basis, El=.0003, Ec=.1, Ej=20.):
     return Rep(circuit, control_iD, basis)
 
 
-def fluxoniumArray(Rep, basis, shunt=None, gamma=1.5, N=0, Ec=100., Ej=150.):
+def fluxoniumArray(Rep, basis, shunt=None, gamma=10., N=0, Ec=2.5, Ej=8.9):
     """Fluxonium with a Josephson-junction array as the superinductance.
 
     The array consists of *N+1* large junctions (energy *γ · Ej*) connecting
@@ -216,15 +225,16 @@ def fluxoniumArray(Rep, basis, shunt=None, gamma=1.5, N=0, Ec=100., Ej=150.):
         Shunt capacitor energy across each array junction (GHz).  If ``None``,
         defaults to ``Ec / gamma``.
     gamma : float, optional
-        Junction energy ratio for array junctions relative to *Ej*.
-        Default ``1.5``.
+        Junction energy ratio for array junctions relative to *Ej*; array
+        junctions must be much larger than the phase-slip junction.
+        Default ``10``.
     N : int, optional
         Number of additional islands in the array.  ``N=0`` gives a standard
         SQUID-like two-junction circuit.  Default ``0``.
     Ec : float, optional
-        Charging energy of the main capacitor in GHz.  Default ``100``.
+        Charging energy of the main capacitor in GHz.  Default ``2.5``.
     Ej : float, optional
-        Josephson energy of the main junction in GHz.  Default ``150``.
+        Josephson energy of the main junction in GHz.  Default ``8.9``.
 
     Returns
     -------
@@ -243,7 +253,7 @@ def fluxoniumArray(Rep, basis, shunt=None, gamma=1.5, N=0, Ec=100., Ej=150.):
     return Rep(circuit, control_iD, basis)
 
 
-def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
+def zeroPi(Rep, basis, Ej=10., Ec=.5, El=1., EcJ=5., symmetry=False,
            _L_=(L_, L0), _C_=(C_, C0), _J_=(J_, J0), _CJ_=(4 * C_, 4 * C0),
            device=None):
     """Zero-pi qubit.
@@ -267,12 +277,14 @@ def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     Ej : float, optional
         Josephson energy in GHz.  Default ``10.0``.
     Ec : float, optional
-        Charging energy of shunt capacitors in GHz.  Default ``50.0``.
+        Charging energy of shunt capacitors in GHz.  Default ``0.5``.
     El : float, optional
-        Inductive energy in GHz.  Default ``10.0``.
+        Inductive energy in GHz.  Default ``1.0``.
     EcJ : float, optional
         Charging energy of junction self-capacitances in GHz.
-        Default ``100.0``.
+        Default ``5.0``.  The defaults are a soft 0-π regime, convergent
+        with modest truncations; the protected regime needs
+        *El, Ec ≪ Ej, EcJ*.
     symmetry : bool, optional
         If ``True``, enforce *Lx = Ly*, *Cx = Cy*, *Jx = Jy*, *CJx = CJy*.
         Default ``False``.
@@ -293,7 +305,7 @@ def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     -------
     >>> from des_scq.circuit import Kerman
     >>> basis   = {'O': [32], 'I': [], 'J': [8, 8]}
-    >>> circuit = zeroPi(Kerman, basis, Ej=10., Ec=50., El=0.5, symmetry=True)
+    >>> circuit = zeroPi(Kerman, basis, Ej=10., Ec=.5, El=1., EcJ=5., symmetry=True)
     """
     circuit  = [L(0, 1, El, 'Lx', L0=_L_[1], L_=_L_[0]),
                 L(2, 3, El, 'Ly', L0=_L_[1], L_=_L_[0])]
@@ -310,7 +322,7 @@ def zeroPi(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     return Rep(circuit, control_iD, basis, pairs, device)
 
 
-def prismon(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
+def prismon(Rep, basis, Ej=10., Ec=.5, El=1., EcJ=5., symmetry=False,
             _L_=(L_, L0), _C_=(C_, C0), _J_=(J_, J0), _CJ_=(4 * C_, 4 * C0)):
     """Prismon qubit — three-junction ring with inductive shunts.
 
@@ -326,11 +338,11 @@ def prismon(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     Ej : float, optional
         Josephson energy in GHz.  Default ``10.0``.
     Ec : float, optional
-        Shunt capacitor charging energy in GHz.  Default ``50.0``.
+        Shunt capacitor charging energy in GHz.  Default ``0.5``.
     El : float, optional
-        Inductive energy in GHz.  Default ``10.0``.
+        Inductive energy in GHz.  Default ``1.0``.
     EcJ : float, optional
-        Junction self-capacitance charging energy in GHz.  Default ``100.0``.
+        Junction self-capacitance charging energy in GHz.  Default ``5.0``.
     symmetry : bool, optional
         If ``True``, enforce three-fold symmetry (*Ja = Jb = Jc*, etc.).
         Default ``False``.
@@ -366,7 +378,7 @@ def prismon(Rep, basis, Ej=10., Ec=50., El=10., EcJ=100., symmetry=False,
     return Rep(circuit, control_iD, basis, pairs)
 
 
-def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
+def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[4., 1., 4.],
                  ind=100., symmetry=False,
                  _C_=(C_, C0), _J_=(J_, J0)):
     """C-shunted three-junction qubit with external flux bias.
@@ -388,10 +400,11 @@ def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
         Default ``[120., 50., 120.]``.
     cap : list of float, optional
         ``[Ec1, Ec2, Ec3]`` charging energies in GHz.
-        Default ``[10., 50., 10.]``.
+        Default ``[4., 1., 4.]``: ~5 fF junction capacitance, ~19 fF shunt
+        across the small junction; *f01 ≈ 1* GHz at half flux.
     ind : float, optional
         Inductive energy *El* of the flux-bias inductor in GHz.
-        Default ``100.0``.
+        Default ``100.0`` (~1.6 nH).
     symmetry : bool, optional
         If ``True``, enforce *J3 = J1* and *C3 = C1*.  Default ``False``.
     _C_, _J_ : tuple, optional
@@ -425,7 +438,7 @@ def shuntedQubit(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
     return Rep(circuit, ('A',), basis, pairs)
 
 
-def fluxShunted(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
+def fluxShunted(Rep, basis, josephson=[50., 35., 50.], cap=[1., 1.43, 1.],
                 symmetry=False, _C_=(C_, C0), _J_=(J_, J0)):
     """Flux-shunted three-junction qubit.
 
@@ -439,9 +452,12 @@ def fluxShunted(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
     basis : list or dict
         Hilbert-space truncation.
     josephson : list of float, optional
-        ``[Ej1, Ej2, Ej3]`` in GHz.  Default ``[120., 50., 120.]``.
+        ``[Ej1, Ej2, Ej3]`` in GHz.  Default ``[50., 35., 50.]``
+        (small junction *α = 0.7*).
     cap : list of float, optional
-        ``[Ec1, Ec2, Ec3]`` in GHz.  Default ``[10., 50., 10.]``.
+        ``[Ec1, Ec2, Ec3]`` in GHz.  Default ``[1., 1.43, 1.]``
+        (*Ec* scales as 1/area, *Ej/Ec = 50*); *f01 ≈ 1.2* GHz at half
+        loop flux.
     symmetry : bool, optional
         If ``True``, enforce *J2 = J1* and *C2 = C1*.  Default ``False``.
 
@@ -466,7 +482,7 @@ def fluxShunted(Rep, basis, josephson=[120., 50., 120.], cap=[10., 50., 10.],
     return Rep(circuit, (), basis, pairs)
 
 
-def oscillatorLC(Rep, basis, El=.00031, Ec=51.6256):
+def oscillatorLC(Rep, basis, El=80., Ec=.05):
     """Simple LC oscillator.
 
     A single inductor and capacitor — useful for benchmarking basis
@@ -479,9 +495,10 @@ def oscillatorLC(Rep, basis, El=.00031, Ec=51.6256):
     basis : list or dict
         Hilbert-space truncation.
     El : float, optional
-        Inductive energy in GHz.  Default ``0.00031``.
+        Inductive energy in GHz.  Default ``80.0`` (~2 nH).
     Ec : float, optional
-        Charging energy in GHz.  Default ``51.6256``.
+        Charging energy in GHz.  Default ``0.05`` (~390 fF); with the
+        default *El* a ~5.7 GHz resonator.
 
     Returns
     -------

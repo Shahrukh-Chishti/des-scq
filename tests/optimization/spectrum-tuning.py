@@ -14,7 +14,7 @@ if __name__ == "__main__":
     print(circuit.circuitComponents())
     flux_profile = [[]]
 
-    lossObjective = lossTransition(tensor([.5],dtype=float),tensor([.25],dtype=float))
+    lossObjective = lossTransition(tensor([5.],dtype=float),tensor([4.75],dtype=float))   # f01 = 5 GHz, anharmonicity -250 MHz
     optim = Optimization(circuit,flux_profile,lossObjective)
     optim.initAlgo(lr=1.)
     print(optim.optimizer)

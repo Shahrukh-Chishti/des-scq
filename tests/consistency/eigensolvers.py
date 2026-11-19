@@ -17,19 +17,19 @@ def main(N=1):
     print('Comparison of different Eigvalue problem solving algorithms, \n available from various libraries & modules')
     print('Consistency proof must be extended to different operating controls of the qubits')
     print('Harmonic Oscillator(q basis)-------')
-    circuit = oscillatorLC(Charge,[N*128])
+    circuit = oscillatorLC(Charge,[N*128],El=80.,Ec=.05)
     H = circuit.hamiltonianLC()
     comparison(H)
 
     print('Transmon(q basis)-------')
-    circuit = transmon(Charge,[N*128])
+    circuit = transmon(Charge,[N*128],Ej=15.,Ec=.3)
     H = circuit.hamiltonianLC() + circuit.hamiltonianJosephson()
     from torch import lobpcg
     print('torch.lobpcg:',lobpcg(H.to(float),k=4,largest=False,method='ortho')[0])
     comparison(H)
 
     print('Fluxonium(o basis)-------')
-    circuit = fluxonium(Kerman,{'O':[N*128],'I':[],'J':[]})
+    circuit = fluxonium(Kerman,{'O':[N*128],'I':[],'J':[]},El=.5,Ec=2.5,Ej=8.9)
     H = circuit.hamiltonianLC() + circuit.hamiltonianJosephson()
     comparison(H)
 

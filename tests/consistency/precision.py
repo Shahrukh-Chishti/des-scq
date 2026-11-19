@@ -5,7 +5,7 @@ from des_scq.utils import plotCompare
 from numpy import linspace,array
 
 def transmonOffsetCharge(N,dtype,ng_list,limit=3):
-    Ej = 30.02 ; Ec = 10.2
+    Ej = 15. ; Ec = .3   # transmon, Ej/Ec = 50
     circuit = transmon(Charge,[N],Ej=Ej,Ec=Ec)
     H_LC = circuit.hamiltonianLC()
     H_J = circuit.hamiltonianJosephson()

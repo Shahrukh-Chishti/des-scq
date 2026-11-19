@@ -8,8 +8,7 @@ from des_scq.circuit import Charge
 from des_scq.utils import plotCompare
 set_num_threads(32)
 
-Ej = 30.02 ; Ec = 10.2
-Ej = Ec*1.
+Ej = 4. ; Ec = .4   # Ej/Ec = 10: charge dispersion visible over n_g
 N = 512
 ng_list = linspace(-2, 2, 220)
 

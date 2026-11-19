@@ -12,10 +12,10 @@ from des_scq.utils import plotCompare
 
 torch.set_default_dtype(torch.float64)
 
-Ej = 30.02 ; Ec = 10.2
 N = 8
-josephson = [2*Ej, 12.5*Ej, 2*Ej]
-cap = [25*Ec, Ec, 5*Ec]
+# 3-junction flux qubit: Ej/Ec = 50, small junction alpha = 0.7 (Ec scales as 1/alpha)
+josephson = [50., 35., 50.]
+cap = [1., 1.43, 1.]
 flux_list = linspace(0, 1, 41)
 
 

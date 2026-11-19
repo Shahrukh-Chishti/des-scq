@@ -15,7 +15,7 @@ from des_scq.components import C0,J0,L0,capE,indE,C_,J_,L_
 set_num_threads(36)
 seed(10)
 
-El,Ec,Ej = 10,10,10
+El,Ec,Ej = 1.,.5,10.
 flux_range = linspace(0,1,1,endpoint=True)
 
 circuit = [L(0,1,El,'L0',L0,L_),C(0,1,Ec,'C0',C0,C_),J(0,1,Ej,'J0',J0,J_)]

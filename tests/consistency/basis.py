@@ -9,7 +9,7 @@ flux_range = linspace(0,1,21)
 flux_manifold = [[tensor(flux)] for flux in flux_range]
 
 def harmonicOscillator(Rep,basis):
-    El = .120;Ec = .0054
+    El = 80.;Ec = .05   # ~5.7 GHz LC resonator (L ~ 2 nH, C ~ 390 fF)
     print('resonator frequency:',sqrt(8*El*Ec))
     print('potential energy bound:',.25/2/indEnergy(El))
     circuit = oscillatorLC(Rep,basis,El,Ec)
@@ -18,7 +18,7 @@ def harmonicOscillator(Rep,basis):
     return spectrum.detach().numpy()
 
 def fluxoniumSpectrum(Rep,basis):
-    Ej = 1.20;Ec = .054;El = 5.
+    Ej = 10.;Ec = .3;El = 10.   # inductively shunted transmon: phase confined, Charge basis converges
     print('resonator frequency:',sqrt(8*Ej*Ec))
     print('potential energy bound:',Ej)
     circuit = fluxonium(Rep,basis,El=El,Ec=Ec,Ej=Ej)
@@ -27,10 +27,10 @@ def fluxoniumSpectrum(Rep,basis):
     return spectrum
 
 def zeroPiSpectrum(Rep,basis):
-    Ej = 1.20;Ec = .054;El = 5.
+    Ej = 10.;Ec = .5;El = 1.;EcJ = 5.   # soft 0-pi regime
     print('resonator frequency:',sqrt(8*Ej*Ec))
     print('potential energy bound:',Ej)
-    circuit = zeroPi(Rep,basis,El=El,Ec=Ec,Ej=Ej,symmetry=True)
+    circuit = zeroPi(Rep,basis,El=El,Ec=Ec,Ej=Ej,EcJ=EcJ,symmetry=True)
     flux_manifold = [[tensor(flux)] for flux in flux_range]
     spectrum = circuit.spectrumManifold(flux_manifold)
     spectrum = stack([val for val,vec in spectrum]).detach().numpy().T
