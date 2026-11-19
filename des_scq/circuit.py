@@ -1026,14 +1026,20 @@ class Kerman(Circuit):
         return L_, C_
 
     def oscillatorImpedance(self):
-        """Return per-oscillator-mode impedance *Z_i = √(Cn_[i,i] / Ln_[i,i])*.
+        """Return per-oscillator-mode impedance *Z_i = √(Co_[i,i] / Lo_[i,i])*.
+
+        Taken in the Kerman mode basis (after ``modeTransformation``): the
+        oscillator operators of ``hamiltonianLC`` and the displacements of
+        ``hamiltonianJosephson`` must be built with the same *Z*, else the
+        Josephson term displaces a flux operator absent from the LC term.
+        No Cooper-pair factor: flux is in units of *Φ₀ = h/2e* already.
 
         Returns
         -------
-        list of Tensor, length No
+        Tensor, shape (No,)
         """
-        Cn_, Ln_, basis = self.Cn_, self.Ln_, self.basis
-        return [sqrt(Cn_[i, i] / Ln_[i, i]) for i in range(len(basis['O']))]
+        Lo_, C_ = self.kermanComponents()
+        return sqrt(diagonal(C_[0]) / diagonal(Lo_))
 
     def linearCombination(self, index):
         """Return row *index* of *R⁻¹* (one row of the mode decomposition).
@@ -1078,8 +1084,7 @@ class Kerman(Circuit):
         I = combination[No:No+Ni]
         J = combination[No+Ni:]
         
-        Z = self.oscillatorImpedance() * 2 # cooper pair factor
-        # re-calculation impedance factor with circuit variation
+        Z = self.oscillatorImpedance()
         DO_plus = [displacementOscillator(basis_max,z,o) for o,z,basis_max in zip(O,Z,basis['O'])]
         DO_minus = [displacementOscillator(basis_max,z,-o) for o,z,basis_max in zip(O,Z,basis['O'])]
         
@@ -1114,7 +1119,7 @@ class Kerman(Circuit):
 
         No,Ni,Nj = self.kermanDistribution()
 
-        Z = sqrt(diagonal(Co_)/diagonal(Lo_))
+        Z = self.oscillatorImpedance()
         Qo = [basisQo(basis_max,Zi) for Zi,basis_max in zip(Z,basis['O'])]
         Qi = [basisQq(basis_max) for basis_max in basis['I']]
         Qj = [basisQq(basis_max) for basis_max in basis['J']]
@@ -1189,7 +1194,7 @@ class Kerman(Circuit):
         Lo_,C_ = self.kermanComponents()
         Co_,Coi_,Coj_,Ci_,Cij_,Cj_ = C_
 
-        Z = sqrt(diagonal(Co_)/diagonal(Lo_))
+        Z = self.oscillatorImpedance()
         Qo = [basisQo(basis_max,Zi) for Zi,basis_max in zip(Z,basis['O'])]
         Qi = [basisQq(basis_max) for basis_max in basis['I']]
         Qj = [basisQq(basis_max) for basis_max in basis['J']]

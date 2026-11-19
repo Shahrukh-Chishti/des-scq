@@ -19,6 +19,7 @@ SUITES = {
         'tests/comparison/scQ-transmon.py',
         'tests/comparison/scQ-flux-shunted.py',
         'tests/comparison/scQ-flux-shunted-flux.py',
+        'tests/comparison/scQ-kerman-oscillators.py',
     ],
     'Optimization': [
         'tests/optimization/spectrum-tuning.py',
