@@ -1200,7 +1200,7 @@ class Kerman(Circuit):
         Qi = [basisQq(basis_max) for basis_max in basis['I']]
         Qj = [basisQq(basis_max) for basis_max in basis['J']]
         Q = Qo + Qi + Qj
-        Io = [identity(2*basis_max+1,complex)*0.0 for basis_max in basis['O']]
+        Io = [identity(basis_max,complex)*0.0 for basis_max in basis['O']]
         Ii = [identity(2*basis_max+1,complex)*charge[index+No]*2 for index,basis_max in enumerate(basis['I'])]
         Ij = [identity(2*basis_max+1,complex)*charge[index+No+Ni]*2 for index,basis_max in enumerate(basis['J'])]
         I = Io + Ii + Ij

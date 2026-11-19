@@ -5,7 +5,7 @@
 import torch
 from torch import tensor
 from des_scq.circuit import Charge, Kerman
-from des_scq.components import J, C
+from des_scq.components import J, C, L
 
 torch.set_default_dtype(torch.float64)
 
@@ -48,8 +48,21 @@ def testIslandJunction():
     assert deviation < 1e-9, deviation
 
 
+def testOscillatorJunction():
+    """Resonator capacitively coupled to a transmon (one oscillator, one junction
+    mode): oscillator modes carry no offset but set the Hilbert-space shape."""
+    network = [L(0, 1, 20., 'L'), C(0, 1, .2, 'Cr'),
+               J(0, 2, 4., 'J'), C(0, 2, .4, 'C'), C(1, 2, 2., 'Cc')]
+    deviation = max(float((Ek - Eq).abs().max())
+                    for Ek, Eq in spectra(network, (2,), {'O': [30], 'I': [], 'J': [12]}, [14, 12],
+                                          [[ng] for ng in offsets]))
+    print(f'oscillator + junction: max |E_kerman - E_charge| = {deviation:.1e} GHz')
+    assert deviation < 1e-9, deviation
+
+
 if __name__ == '__main__':
     print('Charge offset in the Kerman basis')
     testTransmon()
     testIslandJunction()
+    testOscillatorJunction()
     print('PASS')
