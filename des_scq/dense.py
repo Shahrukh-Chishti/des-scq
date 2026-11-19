@@ -641,9 +641,15 @@ def displacementCharge(n, a, device=None):
     -------
     Tensor, shape (2n+1, 2n+1), dtype cdouble
         Unitary displacement operator.
+
+    Notes
+    -----
+    With *[F, Q] = +i/π* (as in the oscillator basis), *e^{+i·2π·F}* raises
+    *Q* by 2.  ``basisQq`` is ordered *2n … −2n*, so ``basisFq`` carries the
+    opposite sign and the exponent is negated here.
     """
     D = basisFq(n, device)
-    return expm(im * 2 * pi * a * D)
+    return expm(-im * 2 * pi * a * D)
 
 
 def displacementOscillator(n, z, a, device=None):
