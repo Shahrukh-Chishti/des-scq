@@ -29,7 +29,7 @@ def testTransmon():
     transitions = []
     for Ek, Eq in spectra(network, (1,), {'O': [], 'I': [], 'J': [12]}, [12],
                           [[ng] for ng in offsets]):
-        deviation = float(((Ek - Ek[0]) - (Eq - Eq[0])).abs().max())
+        deviation = float((Ek - Eq).abs().max())     # absolute energies, not only transitions
         assert deviation < 1e-9, deviation
         transitions.append(float(Ek[1] - Ek[0]))
     print('transmon E01 over n_g', offsets, ':', [round(e, 4) for e in transitions])

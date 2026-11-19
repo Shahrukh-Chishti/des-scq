@@ -1214,11 +1214,11 @@ class Kerman(Circuit):
         
         H += modeMatrixProduct(I,Ci_,Q,(No,No))/2
         H += modeMatrixProduct(Q,Ci_,I,(No,No))/2
-        H += modeMatrixProduct(I,Ci_,I,(No,No))/2
+        H -= modeMatrixProduct(I,Ci_,I,(No,No))/2
         
         H += modeMatrixProduct(I,Cj_,Q,(No+Ni,No+Ni))/2
         H += modeMatrixProduct(Q,Cj_,I,(No+Ni,No+Ni))/2
-        H += modeMatrixProduct(I,Cj_,I,(No+Ni,No+Ni))/2
+        H -= modeMatrixProduct(I,Cj_,I,(No+Ni,No+Ni))/2
 
         return -H
 
